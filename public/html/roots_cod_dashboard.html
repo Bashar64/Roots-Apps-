@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roots COD Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="/css/roots_cod_dashboard.css">
+<link rel="stylesheet" href="/css/navbar.css?v=10.0.2">
+</head>
+<body>
+
+  <div id="navbar"></div>
+  <script src="/js/navbar.js?v=1.2.1"></script>
+
+<div class="cod-actions">
+  <div id="liveBadge" style="display:none" class="live-badge">● LIVE</div>
+  <button class="hbtn" id="histBtn" onclick="window.showHistory()">History</button>
+  <button class="hbtn" id="paidBtn" onclick="window.showPaidSummary()" style="display:none">Paid Summary</button>
+  <button class="hbtn" id="resetBtn" onclick="window.resetDashboard()" style="display:none">New</button>
+</div>
+
+<div id="uploadView">
+  <div class="upload-hero"><h1>COD <span>Reconciliation</span></h1><p>Upload your Omniful export and SkyNet settlement files to begin</p></div>
+  <div class="ugrid">
+    <div class="drop-card" id="omnifulDrop">
+      <input type="file" accept=".xlsx,.xls" onchange="handleOmniful(event)">
+      <div class="di">📋</div><div class="dsrc">Omniful</div>
+      <div class="dlbl">Order Export</div><div class="dhint">Upload your weekly Omniful export</div>
+      <div id="omnifulFiles" class="dfiles"></div>
+    </div>
+    <div class="drop-card" id="skynetDrop">
+      <input type="file" accept=".xlsx,.xls" multiple onchange="handleSkynet(event)">
+      <div class="di">🚚</div><div class="dsrc">SkyNet</div>
+      <div class="dlbl">Settlement Files</div><div class="dhint">Upload 1, 2, or 3 settlement files</div>
+      <div id="skynetFiles" class="dfiles"></div>
+    </div>
+  </div>
+  <button class="run-btn" id="runBtn" onclick="runReconciliation()" disabled>Run Reconciliation</button>
+  <div class="run-err" id="runError"></div>
+</div>
+
+<div id="dashboardView">
+  <div class="topbar">
+    <div><div class="topbar-title">Weekly COD Reconciliation</div><div class="topbar-meta" id="runMeta"></div></div>
+  </div>
+  <div class="scards" id="summaryCards"></div>
+  <div id="transferBox"></div>
+  <div class="sec-lbl">Merchant Breakdown</div>
+  <div class="mgrid" id="merchantGrid"></div>
+  <div class="orders-box">
+    <div class="orders-hdr">
+      <div class="tgrp">
+        <button class="otab active" onclick="switchTab('all',this)">All Orders</button>
+        <button class="otab" onclick="switchTab('matched',this)">Matched</button>
+        <button class="otab" onclick="switchTab('skynetOnly',this)">SkyNet Only</button>
+        <button class="otab" onclick="switchTab('omnifulOnly',this)">Omniful Only</button>
+      </div>
+    </div>
+    <div class="otbar">
+      <div class="sbox"><span>🔍</span><input type="text" id="searchInput" placeholder="Search by order ref, customer, or merchant..." oninput="renderTable()"></div>
+    </div>
+    <div class="twrap" id="tableContainer"></div>
+  </div>
+  <div id="paidSummarySection" style="display:none">
+    <div class="sec-lbl">Payment Summary</div>
+    <div class="paid-summary-box" id="paidSummaryBox"></div>
+  </div>
+</div>
+
+<div id="historyView">
+  <div class="hist-hdr" style="margin-bottom:1.5rem"><h2>Reconciliation History</h2><p>All previous reconciliation runs — click any entry to view full details</p></div>
+  <div id="historyList"></div>
+  <div id="historyDetail"></div>
+</div>
+
+<script type="module" src="/js/roots_cod_dashboard.js"></script>
+</body>
+</html>

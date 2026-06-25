@@ -1,0 +1,31 @@
+{
+  "hosting": {
+    "site": "roots-apps",
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/",
+        "destination": "/html/index.html"
+      },
+      {
+        "source": "/roots_cod_dashboard.html",
+        "destination": "/html/roots_cod_dashboard.html"
+      },
+      {
+        "source": "/Roots Weekly Cycle Dashboard.html",
+        "destination": "/html/Roots Weekly Cycle Dashboard.html"
+      },
+      {
+        "source": "/pickup_tracker.html",
+        "destination": "/html/pickup_tracker.html"
+      }
+    ],
+    "cleanUrls": true,
+    "trailingSlash": false
+  }
+}

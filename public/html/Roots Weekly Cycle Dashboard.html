@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roots AI apps</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/roots_weekly.css">
+  <link rel="stylesheet" href="/css/navbar.css?v=10.0.2.6">
+</head>
+
+<body>
+  <div id="toast-container"></div>
+
+  <div id="navbar"></div>
+  <script src="/js/navbar.js?v=3.5.1"></script>
+
+  <div class="metrics" id="metrics">
+    <div class="metric deep-accent">
+      <div class="metric-label">Total tasks / week</div>
+      <div class="metric-val" id="m-total">0</div>
+      <div class="metric-sub">Scheduled operations</div>
+    </div>
+    <div class="metric orange-accent">
+      <div class="metric-label">Key business tasks</div>
+      <div class="metric-val" id="m-key" style="color:var(--orange)">0</div>
+      <div class="metric-sub">Critical impact tasks</div>
+    </div>
+    <div class="metric green-accent">
+      <div class="metric-label">Progress</div>
+      <div class="metric-val" id="m-progress" style="color:#2e7d32">0%</div>
+      <div class="metric-sub" id="m-done-count">0 tasks completed</div>
+    </div>
+    <div class="metric warning-accent">
+      <div class="metric-label">Pending / Skipped</div>
+      <div class="metric-val" id="m-notdone" style="color:#c45e1a">0</div>
+      <div class="metric-sub">Requires attention</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <span class="ctrl-label">Filter View:</span>
+    <button class="filter-btn active" id="f-all" onclick="setFilter('all')">All tasks</button>
+    <button class="filter-btn" id="f-key" onclick="setFilter('key')">Key priority</button>
+    <button class="filter-btn" id="f-routine" onclick="setFilter('routine')">Daily routine</button>
+    <button class="filter-btn" id="f-notdone" onclick="setFilter('notdone')">Incomplete</button>
+    <span
+      style="margin-left:auto;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em"
+      id="filter-count"></span>
+  </div>
+
+  <div id="schedule"></div>
+
+  <div class="report-box">
+    <div class="report-title">Weekly summary report</div>
+    <div class="report-desc">Generates a detailed audit of all operations completion status, including team assignments
+      and reasons for any incomplete items.</div>
+    <div style="margin-bottom:20px"><span class="email-tag">ops@roots-jo.co</span><span
+        class="email-tag">admin@roots-jo.co</span></div>
+    <div style="font-size:11px;opacity:0.6;margin-bottom:20px;font-weight:600" id="next-send">Next scheduled send:
+      calculatingâ€¦</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <button class="report-btn primary" onclick="sendNow()">Process & Send Report</button>
+      <button class="report-btn" onclick="previewReport()">Preview Summary</button>
+    </div>
+    <div id="report-status"
+      style="font-size:11px;margin-top:14px;font-weight:600;color:var(--orange-mid);min-height:16px"></div>
+    <div class="preview-wrap" id="report-preview"
+      style="display:none;margin-top:20px;border-radius:12px;background:rgba(0,0,0,0.2);padding:20px;border:1px solid rgba(255,255,255,0.1)">
+      <pre id="report-body"
+        style="font-family:'Courier New', monospace;font-size:12px;line-height:1.6;color:rgba(255,255,255,0.9);white-space:pre-wrap"></pre>
+    </div>
+  </div>
+
+  <div class="history-box">
+    <div style="display:flex;align-items:center;margin-bottom:24px">
+      <h2 style="font-size:18px;font-weight:700;color:var(--deep)">Report Archives</h2>
+      <span
+        style="margin-left:12px;font-size:11px;font-weight:700;color:var(--text3);background:#f1f5f9;padding:4px 12px;border-radius:20px"
+        id="history-count">0 reports</span>
+      <button class="add-task-btn" style="margin-left:auto;border-style:solid;background:white"
+        onclick="exportHistory()">Export Full History</button>
+    </div>
+    <div id="history-list"></div>
+  </div>
+
+  <div class="persistence-indicator" id="save-indicator">
+    <div class="save-dot"></div>
+    <span>Cloud Sync Active</span>
+  </div>
+
+  <script type="module" src="/js/roots_weekly.js"></script>
+</body>
+</html>
