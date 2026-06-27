@@ -13,16 +13,44 @@
         "destination": "/html/index.html"
       },
       {
+        "source": "/roots_cod_dashboard",
+        "destination": "/html/roots_cod_dashboard.html"
+      },
+      {
         "source": "/roots_cod_dashboard.html",
         "destination": "/html/roots_cod_dashboard.html"
+      },
+      {
+        "source": "/Roots Weekly Cycle Dashboard",
+        "destination": "/html/Roots Weekly Cycle Dashboard.html"
       },
       {
         "source": "/Roots Weekly Cycle Dashboard.html",
         "destination": "/html/Roots Weekly Cycle Dashboard.html"
       },
       {
+        "source": "/pickup_tracker",
+        "destination": "/html/pickup_tracker.html"
+      },
+      {
         "source": "/pickup_tracker.html",
         "destination": "/html/pickup_tracker.html"
+      },
+      {
+        "source": "/admin",
+        "destination": "/html/admin.html"
+      },
+      {
+        "source": "/admin.html",
+        "destination": "/html/admin.html"
+      },
+      {
+        "source": "/cases_tracker",
+        "destination": "/html/cases_tracker.html"
+      },
+      {
+        "source": "/cases_tracker.html",
+        "destination": "/html/cases_tracker.html"
       }
     ],
     "cleanUrls": true,

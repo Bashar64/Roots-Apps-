@@ -571,28 +571,16 @@ function renderSetup() {
 
 // --- Init ---
 function init() {
-  const savedUser = sessionStorage.getItem("pickup-user");
+  const savedUser = localStorage.getItem("roots-user");
   if (savedUser) {
     state.currentUser = savedUser;
     showApp();
   } else {
-    showLogin();
+    window.location.href = "/";
+    return;
   }
 
   // Event Listeners
-  document.getElementById("login-btn").onclick = () => {
-    const name = document.getElementById("login-name").value.trim();
-    if (name) {
-      state.currentUser = name;
-      sessionStorage.setItem("pickup-user", name);
-      showApp();
-    }
-  };
-
-  document.getElementById("login-name").onkeydown = (e) => {
-    if (e.key === "Enter") document.getElementById("login-btn").click();
-  };
-
   document.querySelectorAll(".tab-btn").forEach(btn => {
     btn.onclick = () => switchTab(btn.dataset.tab);
   });
@@ -651,15 +639,7 @@ function init() {
   document.getElementById("export-csv-btn").onclick = exportCSV;
 }
 
-function showLogin() {
-  document.getElementById("login-screen").style.display = "flex";
-  document.getElementById("app-shell").style.display = "none";
-}
-
 function showApp() {
-  document.getElementById("login-screen").style.display = "none";
-  document.getElementById("app-shell").style.display = "flex";
-  document.getElementById("current-user-name").textContent = state.currentUser;
   renderAll();
 }
 

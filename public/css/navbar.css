@@ -51,6 +51,9 @@ body {
 
 .global-nav .g-nav-right {
   flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 }
 
 .global-nav a:hover {

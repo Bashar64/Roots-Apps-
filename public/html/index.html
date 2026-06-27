@@ -5,39 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Roots AI apps</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/index.css">
+  <link rel="stylesheet" href="/css/index.css?v=2.0.1">
   <link rel="stylesheet" href="/css/navbar.css?v=10.0.2">
+  <link rel="stylesheet" href="/css/admin.css?v=2.0.0">
 </head>
 <body>
 
   <div id="navbar"></div>
-  <script src="/js/navbar.js?v=1.2.1"></script>
+  <script src="/js/navbar.js?v=5.0.1"></script>
 
-  <div class="hero">
-    <h1>Roots AI apps</h1>
+  <!-- Login Gateway -->
+  <div id="global-login-screen" class="admin-overlay" style="display: none;">
+    <div class="admin-card">
+      <h2>Welcome</h2>
+      <p style="margin-bottom: 20px; color: var(--dim)">Enter your username and password.</p>
+      <input type="text" id="global-username" placeholder="Username (e.g. Ahmad)" autocomplete="off" autofocus>
+      <div style="position: relative; margin-bottom: 16px;">
+        <input type="password" id="global-password" placeholder="Password" autocomplete="off" style="margin-bottom: 0;">
+        <button id="toggle-password" type="button" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: auto; margin-bottom: 0; background: transparent; padding: 4px 8px; color: var(--dim); display: flex; align-items: center; justify-content: center;">
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+        </button>
+      </div>
+      <button id="global-login-btn" class="btn-primary">Continue</button>
+      <div id="global-login-error" class="error-msg" style="display:none;">Invalid username or password</div>
+    </div>
   </div>
 
-  <div class="options-grid">
-    <a href="/Roots Weekly Cycle Dashboard.html" class="option-card">
-      <div class="icon-wrap">🔄</div>
-      <h2 class="card-title">Weekly Cycle</h2>
-    </a>
-    
-    <a href="/roots_cod_dashboard.html" class="option-card">
-      <div class="icon-wrap">💰</div>
-      <h2 class="card-title">COD Dashboard</h2>
-    </a>
+  <!-- Dashboard Container -->
+  <div id="dashboard-container" style="display: none;">
+    <div class="hero">
+      <h1 id="welcome-message">Roots AI apps</h1>
+    </div>
 
-    <a href="/pickup_tracker.html" class="option-card">
-      <div class="icon-wrap">🚚</div>
-      <h2 class="card-title">Pickup Tracker</h2>
-    </a>
-
-    <a href="https://roots-c2c-sla.netlify.app/" class="option-card" target="_blank">
-      <div class="icon-wrap">📊</div>
-      <h2 class="card-title">KPI Dashboard</h2>
-    </a>
+    <div class="options-grid" id="apps-grid">
+      <!-- Apps will be injected dynamically -->
+    </div>
   </div>
+
+  <script type="module" src="/js/index.js?v=2.0.3"></script>
 
 </body>
 </html>

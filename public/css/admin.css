@@ -1,0 +1,244 @@
+:root {
+  --accent: #F37828;
+  --accent-glow: rgba(243, 120, 40, 0.25);
+}
+
+
+
+.admin-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.admin-card {
+  background: var(--card);
+  padding: 40px;
+  border-radius: 16px;
+  border: 1px solid var(--border-light);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+}
+
+.admin-card h2 {
+  margin-top: 0;
+  margin-bottom: 24px;
+}
+
+.admin-card input {
+  width: 100%;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #ebf0f2;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.admin-card input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.admin-card button {
+  width: 100%;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+  transition: opacity 0.2s;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-outline:hover {
+  background: var(--card-hover);
+}
+
+.error-msg {
+  color: var(--red);
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.back-link {
+  color: var(--dim);
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.back-link:hover {
+  color: var(--accent);
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 40px;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--card);
+}
+
+.admin-header h1 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.admin-content {
+  padding: 40px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.add-user-card, .users-list-card {
+  background: var(--card);
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  margin-bottom: 24px;
+}
+
+.add-user-card h3, .users-list-card h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.add-user-form {
+  display: flex;
+  gap: 12px;
+}
+
+.add-user-form input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #ebf0f2;
+  color: var(--text);
+  font-family: inherit;
+}
+
+.add-user-form button {
+  padding: 0 24px;
+}
+
+.users-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.user-item {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.user-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.user-header strong {
+  font-size: 16px;
+}
+
+.user-header button {
+  background: transparent;
+  border: none;
+  color: var(--red);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+.user-header button:hover {
+  background: rgba(239,68,68,0.1);
+}
+
+.perm-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+/* Toggle Switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #e74c3c;
+  transition: .3s;
+  border-radius: 22px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #2ecc71;
+}
+
+input:checked + .slider:before {
+  transform: translateX(18px);
+}
