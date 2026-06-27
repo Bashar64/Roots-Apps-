@@ -38,6 +38,17 @@ function renderUsers() {
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
           </button>
         </div>
+
+        <div style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border-light);">
+          <div style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 6px;">Password</div>
+          <div style="display: flex; gap: 8px;">
+            <input type="password" id="pass-${username}" value="${data.password || ''}" style="flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 13px; background: var(--bg);">
+            <button class="btn-outline" style="padding: 6px; border: none; background: transparent; cursor: pointer; color: var(--muted);" onclick="toggleViewPassword('pass-${username}')" title="Toggle Visibility">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            </button>
+            <button class="btn-primary" style="padding: 6px 12px; margin: 0; width: auto; font-size: 12px; border-radius: 6px;" onclick="updatePassword('${username}')">Save</button>
+          </div>
+        </div>
         
         <div class="perm-row" style="border-bottom: 1px solid var(--border-light); margin-bottom: 8px; padding-bottom: 12px;">
           <span style="font-weight: 600;">Admin Privileges</span>
@@ -115,6 +126,31 @@ window.deleteUser = async (username) => {
     } catch (e) {
       console.error("Failed to delete user", e);
     }
+  }
+};
+
+window.toggleViewPassword = (inputId) => {
+  const inp = document.getElementById(inputId);
+  if (inp) {
+    inp.type = inp.type === "password" ? "text" : "password";
+  }
+};
+
+window.updatePassword = async (username) => {
+  const inp = document.getElementById(`pass-${username}`);
+  if (!inp) return;
+  const newPass = inp.value;
+  if (!newPass) {
+    alert("Password cannot be empty.");
+    return;
+  }
+  
+  try {
+    await update(ref(db, `users/${username}`), { password: newPass });
+    alert("Password updated successfully!");
+  } catch (e) {
+    console.error("Failed to update password", e);
+    alert("Error updating password.");
   }
 };
 
