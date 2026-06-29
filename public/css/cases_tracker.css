@@ -193,7 +193,7 @@ main { padding: 22px; flex: 1; }
   background: var(--card);
   border: 1px solid var(--border-light);
   border-radius: 12px;
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 .cases-table {

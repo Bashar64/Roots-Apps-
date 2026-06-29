@@ -506,7 +506,7 @@ hr.mcd {
 .orders-box {
   background: #fff;
   border-radius: 14px;
-  overflow: hidden;
+  overflow-x: auto;
   margin-bottom: 1.5rem;
 }
 

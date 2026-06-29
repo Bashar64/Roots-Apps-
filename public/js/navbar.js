@@ -3,116 +3,7 @@
   const savedTheme = localStorage.getItem('theme') || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
 
-  const darkThemeStyle = document.createElement('style');
-  darkThemeStyle.innerHTML = `
-    html[data-theme="dark"] {
-      --bg: #121212 !important;
-      --surface: #1e1e1e !important;
-      --card: #1e1e1e !important;
-      --border: #333333 !important;
-      --border-light: #2a2a2a !important;
-      --text: #e0e0e0 !important;
-      --muted: #a0a0a0 !important;
-      --dim: #808080 !important;
-      --dark: #e0e0e0 !important;
-    }
-    
-    html[data-theme="dark"] body {
-      background: var(--bg) !important;
-      color: var(--text) !important;
-    }
-
-    html[data-theme="dark"] input, html[data-theme="dark"] select, html[data-theme="dark"] textarea {
-      background: #2a2a2a !important;
-      color: #fff !important;
-      border-color: #444 !important;
-    }
-    html[data-theme="dark"] .global-nav {
-      background: #18181b !important;
-      border-bottom: 1px solid #27272a !important;
-      box-shadow: none !important;
-    }
-    html[data-theme="dark"] .modal-content, 
-    html[data-theme="dark"] .card, 
-    html[data-theme="dark"] .stat-card,
-    html[data-theme="dark"] .option-card,
-    html[data-theme="dark"] .sc,
-    html[data-theme="dark"] .transfer-box,
-    html[data-theme="dark"] .mc,
-    html[data-theme="dark"] .orders-box,
-    html[data-theme="dark"] .drop-card {
-      background: #1e1e1e !important;
-      border: 1px solid #333 !important;
-      color: var(--text) !important;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
-    }
-    
-    html[data-theme="dark"] .option-card:hover {
-      background: #252525 !important;
-    }
-    html[data-theme="dark"] .option-card p {
-      color: var(--muted) !important;
-    }
-    html[data-theme="dark"] .sc-v {
-      color: #fff !important;
-    }
-
-    html[data-theme="dark"] table th,
-    html[data-theme="dark"] thead tr.hrow,
-    html[data-theme="dark"] thead tr.hrow th,
-    html[data-theme="dark"] thead tr.frow th {
-      background: #1a1a1a !important;
-      color: #a0a0a0 !important;
-      border-bottom: 1px solid #333 !important;
-    }
-    html[data-theme="dark"] table td { border-bottom: 1px solid #333 !important; color: var(--text) !important; }
-    html[data-theme="dark"] .cases-table tr:hover,
-    html[data-theme="dark"] tbody tr:hover td { 
-      background: rgba(255,255,255,0.03) !important; 
-    }
-    
-    html[data-theme="dark"] .merchant-item,
-    html[data-theme="dark"] .tmc,
-    html[data-theme="dark"] .sbox,
-    html[data-theme="dark"] .di,
-    html[data-theme="dark"] .otab { 
-      background: #252525 !important; 
-      border-color: #333 !important; 
-      color: var(--text) !important;
-    }
-    
-    html[data-theme="dark"] .hbtn {
-      background: #2a2a2a !important;
-      border-color: #444 !important;
-      color: #e0e0e0 !important;
-    }
-    html[data-theme="dark"] .hbtn.active {
-      background: var(--orange) !important;
-      border-color: var(--orange) !important;
-      color: #fff !important;
-    }
-    
-    html[data-theme="dark"] .orders-hdr,
-    html[data-theme="dark"] .otbar,
-    html[data-theme="dark"] hr.mcd {
-      border-color: #333 !important;
-    }
-    
-    .theme-toggle-btn {
-      background: transparent;
-      border: none;
-      color: #fff;
-      cursor: pointer;
-      padding: 8px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s;
-    }
-    .theme-toggle-btn:hover { background: rgba(255,255,255,0.1); }
-  `;
-  document.head.appendChild(darkThemeStyle);
+  // Dark theme CSS moved to navbar.css
   // ----------------------
 
   async function injectNavbar() {
@@ -181,9 +72,12 @@
     const navHtml = `
       <nav class="global-nav">
         <div class="g-nav-left">
-          <a href="/" class="${isActive('index')}">Roots AI apps</a>
+          <button id="mobile-hamburger" class="hamburger-btn">
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          </button>
+          <a href="/" class="brand-link ${isActive('index')}">Roots AI apps</a>
         </div>
-        <div class="g-nav-center">
+        <div class="g-nav-center" id="nav-menu">
           ${centerLinks}
         </div>
         <div class="g-nav-right" style="display: flex; align-items: center; gap: 16px;">
@@ -192,8 +86,8 @@
             <svg id="theme-icon-moon" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="display: ${savedTheme === 'dark' ? 'none' : 'block'};"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
           </button>
           
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.2);" title="Logged in as ${username}">
+          <div class="user-controls" style="display: flex; align-items: center; gap: 10px;">
+            <div class="user-avatar" style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.2);" title="Logged in as ${username}">
               ${firstLetter}
             </div>
             <button id="nav-logout-btn" style="background: #F37828; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 14px;">Log Out</button>
@@ -223,6 +117,14 @@
         localStorage.removeItem("roots-user");
         localStorage.removeItem("roots-isAdmin");
         window.location.href = "/";
+      });
+    }
+
+    const hamburgerBtn = document.getElementById("mobile-hamburger");
+    const navMenu = document.getElementById("nav-menu");
+    if (hamburgerBtn && navMenu) {
+      hamburgerBtn.addEventListener("click", () => {
+        navMenu.classList.toggle("open");
       });
     }
   }
