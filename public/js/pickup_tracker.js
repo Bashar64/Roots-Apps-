@@ -20,6 +20,7 @@ const trackerRef = ref(db, "trackers/pickup-tracker-v2");
 let state = {
   config: { drivers: [], locations: [], rates: {} },
   pickups: [],
+  merchants: {},
   currentUser: null,
   tab: "dashboard",
   editingPickupId: null
@@ -59,6 +60,11 @@ onValue(trackerRef, (snapshot) => {
     state.pickups = [];
     renderAll();
   }
+});
+
+onValue(ref(db, "cases_tracker/merchants"), (snap) => {
+  state.merchants = snap.val() || {};
+  renderAll(); // Re-render to show merchant names in the table if they updated
 });
 
 async function cloudUpdate(path, value) {
@@ -128,6 +134,8 @@ window.addPickup = async (p) => {
   const newPickup = {
     id,
     ...p,
+    type: p.type || "Pickup",
+    codAmount: p.type === 'Delivery' ? (parseFloat(p.codAmount) || 0) : 0,
     cost: rate,
     loggedBy: state.currentUser,
     createdAt: createdAt,
@@ -159,6 +167,14 @@ window.editPickup = (id) => {
   document.getElementById("modal-items").value = p.items || "";
   document.getElementById("modal-notes").value = p.notes || "";
   document.getElementById("modal-arrival").value = p.arrivalTime || "";
+  document.getElementById("modal-type").value = p.type || "Pickup";
+  document.getElementById("modal-cod").value = p.codAmount || "";
+  document.getElementById("modal-orderid").value = p.orderId || "";
+  document.getElementById("modal-pickup-merchant").value = p.merchantId || "";
+  document.getElementById("modal-cod-group").style.display = (p.type === 'Delivery') ? 'block' : 'none';
+  document.getElementById("modal-orderid-group").style.display = (p.type === 'Delivery') ? 'block' : 'none';
+  document.getElementById("modal-merchant-group").style.display = (p.type === 'Delivery') ? 'block' : 'none';
+  document.getElementById("modal-arrival-group").style.display = (p.type === 'Delivery') ? 'none' : 'block';
   
   // Format local date for input calendar
   const dateObj = new Date(p.createdAt);
@@ -189,6 +205,10 @@ window.saveEditedPickup = async (p) => {
     items: p.items,
     notes: p.notes,
     arrivalTime: p.arrivalTime || "",
+    type: p.type || "Pickup",
+    codAmount: p.type === 'Delivery' ? (parseFloat(p.codAmount) || 0) : 0,
+    orderId: p.type === 'Delivery' ? (p.orderId || "") : "",
+    merchantId: p.type === 'Delivery' ? (p.merchantId || "") : "",
     cost: rate,
     createdAt: createdAt
   };
@@ -253,6 +273,11 @@ function openModal() {
     const lSel = document.getElementById("modal-location");
     lSel.innerHTML = state.config.locations.map(l => `<option value="${l.id}">${l.name} — ${fmtCur(state.config.rates[l.id] || 0)}</option>`).join("");
     
+    const mSel = document.getElementById("modal-pickup-merchant");
+    if (mSel) {
+      mSel.innerHTML = '<option value="">None</option>' + Object.entries(state.merchants).map(([id, m]) => `<option value="${id}">${m.name}</option>`).join("");
+    }
+    
     // Default time
     const now = new Date();
     document.getElementById("modal-arrival").value = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
@@ -271,6 +296,14 @@ function openModal() {
       // Clear inputs
       document.getElementById("modal-items").value = "";
       document.getElementById("modal-notes").value = "";
+      document.getElementById("modal-type").value = "Pickup";
+      document.getElementById("modal-cod").value = "";
+      document.getElementById("modal-orderid").value = "";
+      document.getElementById("modal-pickup-merchant").value = "";
+      document.getElementById("modal-cod-group").style.display = "none";
+      document.getElementById("modal-orderid-group").style.display = "none";
+      document.getElementById("modal-merchant-group").style.display = "none";
+      document.getElementById("modal-arrival-group").style.display = "block";
     }
     
     updateModalCost();
@@ -296,25 +329,28 @@ function renderAll() {
   if (!state.currentUser) return;
   
   if (state.tab === "dashboard") renderDashboard();
-  else if (state.tab === "history") renderHistory();
   else if (state.tab === "setup") renderSetup();
 }
 
 function renderDashboard() {
   const statsEl = document.getElementById("dashboard-stats");
   const chartsEl = document.getElementById("dashboard-charts");
-  const recentEl = document.getElementById("recent-activity-list");
-  const recentCard = document.getElementById("recent-activity-card");
   const emptyEl = document.getElementById("dashboard-empty");
+
+  const tableWrap = document.getElementById("pickup-table-wrap");
+  const filterBar = document.querySelector(".filters-bar");
 
   if (state.pickups.length === 0) {
     statsEl.innerHTML = "";
     chartsEl.innerHTML = "";
-    recentCard.style.display = "none";
     emptyEl.style.display = "block";
+    tableWrap.style.display = "none";
+    if (filterBar) filterBar.style.display = "none";
     return;
   }
   emptyEl.style.display = "none";
+  tableWrap.style.display = "block";
+  if (filterBar) filterBar.style.display = "flex";
 
   const totalCost = state.pickups.reduce((s, p) => s + p.cost, 0);
   const now = new Date();
@@ -401,36 +437,13 @@ function renderDashboard() {
     </div>
   `;
 
-  // Recent Activity
-  const recent = [...state.pickups].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
-  if (recent.length > 0) {
-    recentCard.style.display = "block";
-    recentEl.innerHTML = recent.map(p => {
-      const driver = state.config.drivers.find(d => d.id === p.driverId)?.name || "?";
-      const loc = state.config.locations.find(l => l.id === p.locationId)?.name || "?";
-      return `
-        <div class="activity-item">
-          <div>
-            <div class="activity-main">${driver} <span style="color: var(--dim); fontWeight: 400">→</span> ${loc}</div>
-            <div class="activity-meta">${fmtDate(p.createdAt)} · ${fmtTime(p.createdAt)}${p.arrivalTime ? ` · 🏭 ${p.arrivalTime}` : ""}${p.loggedBy ? ` · by ${p.loggedBy}` : ""}</div>
-          </div>
-          <span class="activity-cost">${fmtCur(p.cost)}</span>
-        </div>
-      `;
-    }).join("");
-  } else {
-    recentCard.style.display = "none";
-  }
-}
-
-function renderHistory() {
+  // Filters & Table Logic
+  const tF = document.getElementById("filter-type") ? document.getElementById("filter-type").value : "all";
   const dF = document.getElementById("filter-driver").value;
   const lF = document.getElementById("filter-location").value;
   const mF = document.getElementById("filter-month").value;
   const dateF = document.getElementById("filter-date").value;
-  const groupF = document.getElementById("group-by").value;
 
-  // Update filter options dynamically from database
   const dSel = document.getElementById("filter-driver");
   const lSel = document.getElementById("filter-location");
   const mSel = document.getElementById("filter-month");
@@ -463,6 +476,7 @@ function renderHistory() {
   if (Array.from(mSel.options).some(o => o.value === mF)) mSel.value = mF;
 
   const filtered = state.pickups.filter(p => {
+    if (tF !== "all" && (p.type || "Pickup") !== tF) return false;
     if (dF !== "all" && p.driverId !== dF) return false;
     if (lF !== "all" && p.locationId !== lF) return false;
     if (mF !== "all") {
@@ -476,73 +490,82 @@ function renderHistory() {
     return true;
   }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-  const total = filtered.reduce((s, p) => s + p.cost, 0);
-  document.getElementById("history-stats").textContent = `${filtered.length} pickups · ${fmtCur(total)}`;
+  window.currentFilteredPickups = filtered;
+
+  const fTotal = filtered.reduce((s, p) => s + p.cost, 0);
+  document.getElementById("history-stats").textContent = `${filtered.length} records · ${fmtCur(fTotal)}`;
 
   const listEl = document.getElementById("history-list");
-  const emptyEl = document.getElementById("history-empty");
-
-  const renderCards = (arr) => arr.map(p => {
-    const driver = state.config.drivers.find(d => d.id === p.driverId)?.name || "?";
-    const loc = state.config.locations.find(l => l.id === p.locationId)?.name || "?";
-    return `
-      <div class="history-card">
-        <div class="hist-info">
-          <div class="hist-title">
-            <span>${driver}</span>
-            <span style="color: var(--dim); font-size: 12px">→</span>
-            <span style="color: var(--text); font-weight: 500">${loc}</span>
-          </div>
-          <div class="hist-meta">
-            <span>${fmtDate(p.createdAt)} ${fmtTime(p.createdAt)}</span>
-            ${p.arrivalTime ? `<span style="color: var(--green)">🏭 Arrived: ${p.arrivalTime}</span>` : ""}
-            ${p.items ? `<span>📦 ${p.items}</span>` : ""}
-            ${p.loggedBy ? `<span style="color: var(--blue)">by ${p.loggedBy}</span>` : ""}
-            ${p.notes ? `<span style="font-style: italic">"${p.notes}"</span>` : ""}
-          </div>
-        </div>
-        <div style="display: flex; align-items: center; gap: 12px">
-          <select onchange="togglePaid('${p.id}', this.value)" style="color: ${p.paid ? 'var(--green)' : 'var(--red)'}; background: ${p.paid ? 'rgba(52,211,153,.15)' : 'rgba(239,68,68,.15)'}; border: 1px solid ${p.paid ? 'var(--green)' : 'var(--red)'}; border-radius: 6px; padding: 4px 8px; font-size: 12px; font-weight: 600; cursor: pointer; outline: none;">
-            <option value="unpaid" ${!p.paid ? 'selected' : ''} style="color: var(--text); background: var(--card);">Not Paid</option>
-            <option value="paid" ${p.paid ? 'selected' : ''} style="color: var(--text); background: var(--card);">Paid</option>
-          </select>
-          <span class="hist-cost">${fmtCur(p.cost)}</span>
-          <div style="display: flex; gap: 6px">
-            <button class="btn-transparent" onclick="editPickup('${p.id}')" style="background: var(--accent-dim); color: var(--accent); padding: 6px; border-radius: 6px" title="Edit Log">${I.edit}</button>
-            <button class="btn-red-dim" onclick="rmPickup('${p.id}')" style="padding: 6px; border-radius: 6px" title="Delete Log">${I.trash}</button>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join("");
+  const histEmptyEl = document.getElementById("history-empty");
 
   if (filtered.length === 0) {
     listEl.innerHTML = "";
-    emptyEl.style.display = "block";
+    tableWrap.style.display = "none";
+    histEmptyEl.style.display = "block";
   } else {
-    emptyEl.style.display = "none";
-    if (groupF === "day") {
-      const grouped = {};
-      filtered.forEach(p => {
-        const pDate = p.date || new Date(p.createdAt).toISOString().split('T')[0];
-        if (!grouped[pDate]) grouped[pDate] = [];
-        grouped[pDate].push(p);
-      });
-      const sortedDays = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
-      listEl.innerHTML = sortedDays.map(day => {
-        const dStr = new Date(day).toLocaleDateString("en-US", { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-        const dayCost = grouped[day].reduce((s, p) => s + p.cost, 0);
-        return `
-          <div style="font-weight: 700; margin: 20px 0 10px; color: var(--text); border-bottom: 2px solid var(--border-light); padding-bottom: 6px; display: flex; justify-content: space-between;">
-            <span>📅 ${dStr}</span>
-            <span style="color: var(--dim)">${fmtCur(dayCost)}</span>
-          </div>
-          ${renderCards(grouped[day])}
-        `;
-      }).join("");
-    } else {
-      listEl.innerHTML = renderCards(filtered);
-    }
+    histEmptyEl.style.display = "none";
+    tableWrap.style.display = "block";
+    listEl.innerHTML = filtered.map(p => {
+      const driver = state.config.drivers.find(d => d.id === p.driverId)?.name || "?";
+      const loc = state.config.locations.find(l => l.id === p.locationId)?.name || "?";
+      const typeHtml = p.type === 'Delivery' ? `<span class="status-badge" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">🚚 Delivery</span>` : `<span class="status-badge" style="background: rgba(243, 120, 40, 0.1); color: var(--accent);">📦 Pickup</span>`;
+      
+      const paidSel = `<select onchange="togglePaid('${p.id}', this.value)" style="appearance: none; -webkit-appearance: none; color: white !important; background: ${p.paid ? 'var(--green)' : 'var(--red)'} !important; border: none; border-radius: 6px; padding: 6px 10px; font-size: 12px; font-weight: 700; cursor: pointer; outline: none; text-align: center;">
+        <option value="unpaid" ${!p.paid ? 'selected' : ''} style="color: var(--text); background: var(--card);">Not Paid</option>
+        <option value="paid" ${p.paid ? 'selected' : ''} style="color: var(--text); background: var(--card);">Paid</option>
+      </select>`;
+
+      return `
+        <tr>
+          <td><input type="checkbox" class="pickup-checkbox" data-id="${p.id}"></td>
+          <td>
+            <div style="font-weight: 600; margin-bottom: 4px;">${fmtDate(p.createdAt)}</div>
+            <div style="color: var(--dim); font-size: 11px;">${fmtTime(p.createdAt)}</div>
+          </td>
+          <td>${typeHtml}</td>
+          <td><span style="font-weight: 600;">${driver}</span></td>
+          <td>${loc}</td>
+          <td>
+            <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted);">
+              ${p.type === 'Delivery' && p.merchantId ? `<div><span style="font-weight: 600;">Merchant:</span> ${state.merchants[p.merchantId]?.name || 'Unknown'}</div>` : ''}
+              ${p.type === 'Delivery' && p.orderId ? `<div><span style="font-weight: 600;">Order:</span> ${p.orderId}</div>` : ''}
+              ${p.type === 'Delivery' && p.codAmount ? `<div><span style="font-weight: 600;">COD:</span> ${fmtCur(p.codAmount)}</div>` : ''}
+              ${p.arrivalTime ? `<div><span style="color: var(--green);">🏭 Arrived:</span> ${p.arrivalTime}</div>` : ''}
+              ${p.items ? `<div><span style="font-weight: 600;">Items:</span> ${p.items}</div>` : ''}
+              ${p.notes ? `<div><span style="font-weight: 600;">Notes:</span> <span style="font-style: italic;">"${p.notes}"</span></div>` : ''}
+              ${p.loggedBy ? `<div><span style="font-weight: 600;">By:</span> ${p.loggedBy}</div>` : ''}
+            </div>
+          </td>
+          <td>${paidSel}</td>
+          <td style="font-family: var(--mono); font-weight: 700; color: var(--accent);">${fmtCur(p.cost)}</td>
+          <td>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn-transparent" onclick="editPickup('${p.id}')" style="color: var(--blue); padding: 4px;" title="Edit">${I.edit}</button>
+              <button class="btn-transparent" onclick="rmPickup('${p.id}')" style="color: var(--red); padding: 4px;" title="Delete">${I.trash}</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join("");
+  }
+  
+  const selectAllPickups = document.getElementById("select-all-pickups");
+  if (selectAllPickups) {
+    selectAllPickups.checked = false;
+    selectAllPickups.indeterminate = false;
+  }
+  updateBulkDeleteBtn();
+}
+
+function updateBulkDeleteBtn() {
+  const btn = document.getElementById("delete-selected-btn");
+  if (!btn) return;
+  const checkedCount = document.querySelectorAll(".pickup-checkbox:checked").length;
+  if (checkedCount > 0) {
+    btn.style.display = "inline-block";
+    btn.textContent = `Delete Selected (${checkedCount})`;
+  } else {
+    btn.style.display = "none";
   }
 }
 
@@ -618,25 +641,77 @@ function init() {
     const locationId = document.getElementById("modal-location").value;
     const items = document.getElementById("modal-items").value;
     const notes = document.getElementById("modal-notes").value;
-    const arrivalTime = document.getElementById("modal-arrival").value;
+    const type = document.getElementById("modal-type").value;
+    const codAmount = document.getElementById("modal-cod").value;
+    const orderId = type === 'Delivery' ? document.getElementById("modal-orderid").value : "";
+    const merchantId = type === 'Delivery' ? document.getElementById("modal-pickup-merchant").value : "";
+    const arrivalTime = type === 'Delivery' ? "" : document.getElementById("modal-arrival").value;
     const date = document.getElementById("modal-date").value;
     
     if (state.editingPickupId) {
-      window.saveEditedPickup({ id: state.editingPickupId, driverId, locationId, items, notes, arrivalTime, date });
+      window.saveEditedPickup({ id: state.editingPickupId, driverId, locationId, items, notes, arrivalTime, date, type, codAmount, orderId, merchantId });
     } else {
-      window.addPickup({ driverId, locationId, items, notes, arrivalTime, date });
+      window.addPickup({ driverId, locationId, items, notes, arrivalTime, date, type, codAmount, orderId, merchantId });
     }
   };
 
   document.getElementById("modal-location").onchange = updateModalCost;
 
-  document.getElementById("filter-driver").onchange = renderHistory;
-  document.getElementById("filter-location").onchange = renderHistory;
-  document.getElementById("filter-month").onchange = renderHistory;
-  document.getElementById("filter-date").onchange = renderHistory;
-  document.getElementById("group-by").onchange = renderHistory;
+  const tEl = document.getElementById("filter-type");
+  if (tEl) tEl.onchange = renderDashboard;
+  document.getElementById("filter-driver").onchange = renderDashboard;
+  document.getElementById("filter-location").onchange = renderDashboard;
+  document.getElementById("filter-month").onchange = renderDashboard;
+  document.getElementById("filter-date").onchange = renderDashboard;
+  document.getElementById("group-by").onchange = renderDashboard;
   
   document.getElementById("export-csv-btn").onclick = exportCSV;
+
+  const selectAllPickups = document.getElementById("select-all-pickups");
+  if (selectAllPickups) {
+    selectAllPickups.addEventListener("change", (e) => {
+      const isChecked = e.target.checked;
+      document.querySelectorAll(".pickup-checkbox").forEach(cb => cb.checked = isChecked);
+      updateBulkDeleteBtn();
+    });
+  }
+
+  const historyList = document.getElementById("history-list");
+  if (historyList) {
+    historyList.addEventListener("change", (e) => {
+      if (e.target.classList.contains("pickup-checkbox")) {
+        updateBulkDeleteBtn();
+        const checkboxes = document.querySelectorAll(".pickup-checkbox");
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+        const someChecked = Array.from(checkboxes).some(cb => cb.checked);
+        if (selectAllPickups) {
+          selectAllPickups.checked = allChecked;
+          selectAllPickups.indeterminate = someChecked && !allChecked;
+        }
+      }
+    });
+  }
+
+  const deleteSelectedBtn = document.getElementById("delete-selected-btn");
+  if (deleteSelectedBtn) {
+    deleteSelectedBtn.addEventListener("click", async () => {
+      const checkedBoxes = document.querySelectorAll(".pickup-checkbox:checked");
+      if (checkedBoxes.length === 0) return;
+      if (confirm(`Are you sure you want to permanently delete ${checkedBoxes.length} pickup(s)?`)) {
+        try {
+          const promises = Array.from(checkedBoxes).map(cb => {
+            const id = cb.getAttribute("data-id");
+            return remove(ref(db, `trackers/pickup-tracker-v2/pickups/${id}`));
+          });
+          await Promise.all(promises);
+          flash(`Deleted ${checkedBoxes.length} pickup(s)`);
+        } catch (error) {
+          console.error("Failed to delete some pickups", error);
+          alert("Failed to delete some pickups.");
+        }
+      }
+    });
+  }
 }
 
 function showApp() {
@@ -644,11 +719,13 @@ function showApp() {
 }
 
 function exportCSV() {
-  const h = "Date,Time,Driver,Location,Items,Cost (JOD),Arrival at Roots,Notes,Logged By\n";
-  const rows = state.pickups.map(p => {
+  const h = "Date,Time,Driver,Location,Type,Merchant,Order ID,COD Amount (JOD),Items,Cost (JOD),Arrival at Roots,Notes,Logged By\n";
+  const targetPickups = window.currentFilteredPickups || state.pickups;
+  const rows = targetPickups.map(p => {
     const d = state.config.drivers.find(x => x.id === p.driverId)?.name || "";
     const l = state.config.locations.find(x => x.id === p.locationId)?.name || "";
-    return `"${fmtDate(p.createdAt)}","${fmtTime(p.createdAt)}","${d}","${l}","${p.items || ""}",${p.cost},"${p.arrivalTime || ""}","${p.notes || ""}","${p.loggedBy || ""}"`;
+    const mName = (p.type === 'Delivery' && p.merchantId) ? (state.merchants[p.merchantId]?.name || "Unknown") : "";
+    return `"${fmtDate(p.createdAt)}","${fmtTime(p.createdAt)}","${d}","${l}","${p.type || 'Pickup'}","${mName}","${p.orderId || ""}",${p.codAmount || 0},"${p.items || ""}",${p.cost},"${p.arrivalTime || ""}","${p.notes || ""}","${p.loggedBy || ""}"`;
   }).join("\n");
   const blob = new Blob([h + rows], { type: "text/csv" });
   const a = document.createElement("a");

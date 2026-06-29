@@ -51,6 +51,14 @@
       {
         "source": "/cases_tracker.html",
         "destination": "/html/cases_tracker.html"
+      },
+      {
+        "source": "/shift_tracker",
+        "destination": "/html/shift_tracker.html"
+      },
+      {
+        "source": "/shift_tracker.html",
+        "destination": "/html/shift_tracker.html"
       }
     ],
     "cleanUrls": true,

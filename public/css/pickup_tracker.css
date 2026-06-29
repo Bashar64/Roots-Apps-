@@ -158,10 +158,8 @@ nav.tabs {
 
 /* Main Content */
 main {
-  padding: 22px 22px 100px;
-  max-width: 960px;
-  margin: 0 auto;
-  width: 100%;
+  padding: 22px;
+  flex: 1;
 }
 
 .view-section {
@@ -387,6 +385,56 @@ main {
   color: var(--accent);
 }
 
+/* ── Pickup Table ── */
+.pickup-table-wrap {
+  background: var(--card);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 24px;
+}
+
+.pickup-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.pickup-table thead {
+  background: #f7f9fa;
+  border-bottom: 1px solid var(--border);
+}
+
+.pickup-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.pickup-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: middle;
+}
+
+.pickup-table tr:last-child td { border-bottom: none; }
+.pickup-table tr:hover { background: rgba(243, 120, 40, 0.02); }
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
 /* Setup */
 .setup-section {
   background: var(--card);
@@ -579,7 +627,17 @@ main {
 .btn-transparent {
   background: transparent;
   color: var(--muted);
+  padding: 6px;
 }
+.btn-transparent:hover { color: var(--accent); }
+
+.btn-danger {
+  background: var(--red);
+  color: #fff;
+  padding: 8px 16px;
+  font-weight: 700;
+}
+.btn-danger:hover { opacity: 0.9; }
 
 .empty-msg {
   text-align: center;

@@ -12,7 +12,7 @@
 <body>
 
   <div id="navbar"></div>
-  <script src="/js/navbar.js?v=5.0.1"></script>
+  <script src="/js/navbar.js?v=5.0.3"></script>
 
   <div id="app-shell" class="shell">
     <header>
@@ -77,7 +77,11 @@
             <input type="checkbox" id="show-desc-toggle" style="width: 15px; height: 15px; accent-color: var(--accent);">
             Show Full Descriptions
           </label>
-          <div class="filter-stats" id="cases-filter-stats">0 cases</div>
+          <button id="export-csv-btn" class="btn-transparent" style="background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 7px 14px; margin-left: auto;">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            CSV
+          </button>
+          <button id="delete-selected-btn" class="btn-danger" style="margin-left: 10px; display: none;">Delete Selected</button>
         </div>
 
         <!-- Table -->
@@ -89,6 +93,7 @@
           <table class="cases-table">
             <thead>
               <tr>
+                <th style="width: 40px;"><input type="checkbox" id="select-all-cases"></th>
                 <th>Merchant</th>
                 <th>Order ID</th>
                 <th>Description</th>

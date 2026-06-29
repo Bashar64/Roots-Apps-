@@ -89,6 +89,14 @@ function renderUsers() {
             <span class="slider"></span>
           </label>
         </div>
+
+        <div class="perm-row">
+          <span>Shift Tracker</span>
+          <label class="switch">
+            <input type="checkbox" ${apps['shift_tracker'] ? 'checked' : ''} onchange="togglePerm('${username}', 'shift_tracker', this.checked)">
+            <span class="slider"></span>
+          </label>
+        </div>
       </div>
     `;
   }).join("");
@@ -178,7 +186,8 @@ if (addBtn) {
       return;
     }
     
-    if (usersData[username]) {
+    const userExists = Object.keys(usersData).some(k => k.toLowerCase() === username.toLowerCase());
+    if (userExists) {
       alert("User already exists!");
       return;
     }
@@ -191,7 +200,8 @@ if (addBtn) {
           'roots_cod_dashboard': false,
           'pickup_tracker': false,
           'kpi_dashboard': false,
-          'cases_tracker': false
+          'cases_tracker': false,
+          'shift_tracker': false
         }
       });
       userInp.value = "";

@@ -162,7 +162,6 @@ function renderCases() {
   const emptyEl = document.getElementById("cases-empty");
   const tableWrap = document.getElementById("cases-table-wrap");
   const statsEl = document.getElementById("cases-stats");
-  const filterStatsEl = document.getElementById("cases-filter-stats");
 
   // Get filter values
   const merchantFilter = document.getElementById("filter-merchant").value;
@@ -193,6 +192,8 @@ function renderCases() {
   // Sort by date descending
   entries.sort((a, b) => new Date(b[1].datetime || 0) - new Date(a[1].datetime || 0));
 
+  window.currentFilteredCases = entries;
+
   // Stats (from all cases, not filtered)
   const allEntries = Object.values(cases);
   const totalCases = allEntries.length;
@@ -213,8 +214,6 @@ function renderCases() {
       <div class="stat-val" style="color: var(--green);">${resolvedCases}</div>
     </div>
   `;
-
-  filterStatsEl.textContent = `${entries.length} case${entries.length !== 1 ? 's' : ''}`;
 
   if (entries.length === 0) {
     emptyEl.style.display = "block";
@@ -246,6 +245,7 @@ function renderCases() {
 
     return `
       <tr>
+        <td><input type="checkbox" class="case-checkbox" data-id="${id}"></td>
         <td>
           <span class="merchant-badge" style="background: ${m.color}18; color: ${m.color};">
             <span class="merchant-dot" style="background: ${m.color};"></span>
@@ -276,6 +276,68 @@ function renderCases() {
       </tr>
     `;
   }).join("");
+
+  const selectAllCases = document.getElementById("select-all-cases");
+  if (selectAllCases) {
+    selectAllCases.checked = false;
+    selectAllCases.indeterminate = false;
+  }
+  updateBulkDeleteBtn();
+}
+
+function updateBulkDeleteBtn() {
+  const btn = document.getElementById("delete-selected-btn");
+  if (!btn) return;
+  const checkedCount = document.querySelectorAll(".case-checkbox:checked").length;
+  if (checkedCount > 0) {
+    btn.style.display = "inline-block";
+    btn.textContent = `Delete Selected (${checkedCount})`;
+  } else {
+    btn.style.display = "none";
+  }
+}
+
+const selectAllCases = document.getElementById("select-all-cases");
+if (selectAllCases) {
+  selectAllCases.addEventListener("change", (e) => {
+    const isChecked = e.target.checked;
+    document.querySelectorAll(".case-checkbox").forEach(cb => cb.checked = isChecked);
+    updateBulkDeleteBtn();
+  });
+}
+
+document.getElementById("cases-tbody").addEventListener("change", (e) => {
+  if (e.target.classList.contains("case-checkbox")) {
+    updateBulkDeleteBtn();
+    const checkboxes = document.querySelectorAll(".case-checkbox");
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+    const someChecked = Array.from(checkboxes).some(cb => cb.checked);
+    if (selectAllCases) {
+      selectAllCases.checked = allChecked;
+      selectAllCases.indeterminate = someChecked && !allChecked;
+    }
+  }
+});
+
+const deleteSelectedBtn = document.getElementById("delete-selected-btn");
+if (deleteSelectedBtn) {
+  deleteSelectedBtn.addEventListener("click", async () => {
+    const checkedBoxes = document.querySelectorAll(".case-checkbox:checked");
+    if (checkedBoxes.length === 0) return;
+    if (confirm(`Are you sure you want to permanently delete ${checkedBoxes.length} case(s)?`)) {
+      try {
+        const promises = Array.from(checkedBoxes).map(cb => {
+          const id = cb.getAttribute("data-id");
+          return remove(ref(db, `cases_tracker/cases/${id}`));
+        });
+        await Promise.all(promises);
+        showToast(`Deleted ${checkedBoxes.length} case(s)`);
+      } catch (error) {
+        console.error("Failed to delete some cases", error);
+        alert("Failed to delete some cases.");
+      }
+    }
+  });
 }
 
 // Toggle status
@@ -427,6 +489,34 @@ document.getElementById("confirm-case-btn").addEventListener("click", async () =
   } catch (e) {
     console.error("Failed to save case", e);
   }
+});
+
+document.getElementById("export-csv-btn").addEventListener("click", () => {
+  const targetCases = window.currentFilteredCases || Object.entries(cases);
+  
+  const h = "Date,Time,Merchant,Order ID,Description,Action Taken,Type/Charge,Status,Logged By\n";
+  const rows = targetCases.map(([id, c]) => {
+    const m = merchants[c.merchantId] || { name: "Unknown" };
+    let d = "", t = "";
+    if (c.datetime) {
+      const dt = new Date(c.datetime);
+      d = dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+      t = dt.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    }
+    
+    // Escape quotes in description and action
+    const desc = (c.description || "").replace(/"/g, '""');
+    const act = (c.action || "").replace(/"/g, '""');
+    
+    return `"${d}","${t}","${m.name}","${c.orderId || ""}","${desc}","${act}","${c.charge || 'NONE'}","${c.status}","${c.createdBy || ""}"`;
+  }).join("\n");
+  
+  const blob = new Blob([h + rows], { type: "text/csv" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `cases_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  showToast("CSV exported");
 });
 
 // ── Init ──

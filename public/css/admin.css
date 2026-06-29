@@ -3,6 +3,13 @@
   --accent-glow: rgba(243, 120, 40, 0.25);
 }
 
+body {
+  max-width: none !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  padding-top: 48px !important;
+}
+
 
 
 .admin-overlay {
@@ -109,6 +116,9 @@
   padding: 24px 40px;
   border-bottom: 1px solid var(--border-light);
   background: var(--card);
+  width: 100%;
+  box-sizing: border-box;
+  z-index: 100;
 }
 
 .admin-header h1 {
@@ -118,8 +128,9 @@
 
 .admin-content {
   padding: 40px;
-  max-width: 1000px;
+  max-width: 100%;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .add-user-card, .users-list-card {

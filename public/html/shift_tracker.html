@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shift Tracker | Roots AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/navbar.css?v=10.0.3">
+  <link rel="stylesheet" href="/css/shift_tracker.css?v=1.0.1">
+  <script type="module" src="/js/auth.js"></script>
+</head>
+<body>
+
+  <div id="navbar"></div>
+  <script src="/js/navbar.js?v=5.0.3"></script>
+
+  <div id="app-shell" class="shell">
+    <header>
+      <div class="logo-wrap">
+        <div class="logo-icon" style="color: #27ae60; background: rgba(39, 174, 96, 0.1);">
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        </div>
+        <div class="logo-text">
+          <h1>Shift Tracker</h1>
+          <p>Punch In / Out & Payroll</p>
+        </div>
+      </div>
+    </header>
+
+    <nav class="tabs" id="admin-tabs" style="display: none;">
+      <button class="tab-btn active" data-tab="punch">
+        <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        My Shift
+      </button>
+      <button class="tab-btn" data-tab="admin">
+        <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        Admin Dashboard
+      </button>
+    </nav>
+
+    <main>
+      <!-- Punch Clock View -->
+      <section id="view-punch" class="view-section active">
+        <div class="punch-container">
+          <div class="punch-status" id="punch-status">Currently Punched Out</div>
+          <div class="punch-timer" id="punch-timer">00:00:00</div>
+          
+          <button id="punch-btn" class="punch-btn btn-green">
+            <div class="punch-btn-inner">
+              <span id="punch-btn-text">PUNCH IN</span>
+            </div>
+          </button>
+        </div>
+      </section>
+
+      <!-- Admin Dashboard View -->
+      <section id="view-admin" class="view-section" style="display: none;">
+        
+        <div class="admin-section">
+          <div class="setup-title">Active Shifts</div>
+          <div class="setup-sub">Users currently punched in.</div>
+          <div class="active-shifts-grid" id="active-shifts-container">
+            <div class="empty-msg" style="display: block;">No active shifts.</div>
+          </div>
+        </div>
+
+        <div class="admin-section" style="margin-top: 40px;">
+          <div class="setup-title">Shift History & Payroll</div>
+          <div class="setup-sub">Completed shifts with calculated pay at 2 JOD/hr.</div>
+          
+          <div class="filters-bar" style="margin-top: 16px; justify-content: space-between;">
+            <div style="display: flex; gap: 10px;">
+              <select id="filter-user" class="filter-select">
+                <option value="all">All Users</option>
+              </select>
+              <select id="filter-week" class="filter-select">
+                <option value="all">All Weeks</option>
+              </select>
+            </div>
+            <button id="delete-selected-btn" class="btn-danger" style="display: none;">Delete Selected</button>
+          </div>
+
+          <div class="cases-table-wrap">
+            <table class="cases-table">
+              <thead>
+                <tr>
+                  <th style="width: 40px;"><input type="checkbox" id="select-all-shifts"></th>
+                  <th>User</th>
+                  <th>Date</th>
+                  <th>Day</th>
+                  <th>Start Time</th>
+                  <th>End Time</th>
+                  <th>Duration</th>
+                  <th>Pay (JOD)</th>
+                  <th style="width: 40px;"></th>
+                </tr>
+              </thead>
+              <tbody id="history-tbody"></tbody>
+              <tfoot id="history-tfoot">
+                <tr>
+                  <td colspan="7" style="text-align: right; font-weight: 700;">Total:</td>
+                  <td colspan="2" id="history-total-pay" style="font-weight: 800; color: var(--accent);">0.00 JOD</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+        
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="/js/shift_tracker.js?v=1.0.5"></script>
+</body>
+</html>

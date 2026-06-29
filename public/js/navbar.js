@@ -130,7 +130,8 @@
         'roots_cod_dashboard': true,
         'pickup_tracker': true,
         'cases_tracker': true,
-        'kpi_dashboard': true
+        'kpi_dashboard': true,
+        'shift_tracker': true
       };
     } else {
       try {
@@ -168,6 +169,13 @@
     }
     if (userApps['kpi_dashboard']) {
       centerLinks += `<a href="https://roots-c2c-sla.netlify.app/" target="_blank">KPI Tracking</a>`;
+    }
+    if (userApps['shift_tracker']) {
+      centerLinks += `<a href="/shift_tracker" class="${isActive('shift_tracker')}">Shift Tracker</a>`;
+    }
+
+    if (username === "Roots" || localStorage.getItem("roots-isAdmin") === "true") {
+      centerLinks += `<a href="/admin" class="${isActive('admin')}">Admin Portal</a>`;
     }
 
     const navHtml = `

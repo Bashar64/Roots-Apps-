@@ -40,6 +40,12 @@ const ALL_APPS = [
     icon: "📊",
     title: "KPI Dashboard",
     external: true
+  },
+  {
+    id: "shift_tracker",
+    href: "/shift_tracker",
+    icon: "⏱️",
+    title: "Shift Tracker"
   }
 ];
 
@@ -108,8 +114,8 @@ document.getElementById("global-login-btn").addEventListener("click", async () =
   if (!username) return;
 
   // Master Admin Bypass
-  if (username === "Roots" && password === "RootsOpsJo@25") {
-    localStorage.setItem("roots-user", username);
+  if (username.toLowerCase() === "roots" && password === "RootsOpsJo@25") {
+    localStorage.setItem("roots-user", "Roots");
     localStorage.setItem("roots-isAdmin", "true");
     err.style.display = "none";
     userInp.value = "";
@@ -119,11 +125,22 @@ document.getElementById("global-login-btn").addEventListener("click", async () =
   }
 
   // Normal User Check
-  const snapshot = await get(ref(db, `users/${username}`));
+  const snapshot = await get(ref(db, `users`));
+  let data = null;
+  let realUsername = username;
+  
   if (snapshot.exists()) {
-    const data = snapshot.val();
+    const allUsers = snapshot.val();
+    const foundKey = Object.keys(allUsers).find(k => k.toLowerCase() === username.toLowerCase());
+    if (foundKey) {
+      data = allUsers[foundKey];
+      realUsername = foundKey;
+    }
+  }
+
+  if (data) {
     if (data.password === password) {
-      localStorage.setItem("roots-user", username);
+      localStorage.setItem("roots-user", realUsername);
       if (data.isAdmin) {
         localStorage.setItem("roots-isAdmin", "true");
       } else {
