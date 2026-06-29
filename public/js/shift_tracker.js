@@ -86,10 +86,14 @@ function formatDatetimeLocal(timestamp) {
 function getWeekIdentifier(date) {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() + 4 - (d.getDay() || 7)); // Thursday
-  const yearStart = new Date(d.getFullYear(), 0, 1);
-  const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-  return `${d.getFullYear()}-W${weekNo.toString().padStart(2, '0')}`;
+  const day = d.getDay(); // 0=Sun, 1=Mon, ..., 5=Fri, 6=Sat
+  let daysToFriday = 5 - day;
+  if (daysToFriday < 0) daysToFriday += 7; 
+  d.setDate(d.getDate() + daysToFriday);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const dateStr = String(d.getDate()).padStart(2, '0');
+  return `Week ending ${year}-${month}-${dateStr}`;
 }
 
 function calculatePay(durationMs) {
