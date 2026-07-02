@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, onValue, set, remove, push, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, onValue, set, remove, push, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDd8w3D3i0fehq-uvyCzag3PbtknAuV0jQ",
@@ -81,6 +81,13 @@ function formatDatetimeLocal(timestamp) {
   if (!timestamp) return "-";
   const d = new Date(timestamp);
   return d.toLocaleString('en-GB', { hour12: true, day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function toDatetimeLocalString(timestamp) {
+  if (!timestamp) return "";
+  const d = new Date(timestamp);
+  const pad = (n) => n.toString().padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 function getWeekIdentifier(date) {
@@ -202,6 +209,7 @@ if (isAdmin) {
   // Live Active Shifts
   let adminActiveShiftsInterval = null;
   let allActiveShifts = {};
+  let editingShiftId = null;
   
   onValue(ref(db, 'shifts/active'), (snapshot) => {
     allActiveShifts = snapshot.val() || {};
@@ -361,6 +369,30 @@ if (isAdmin) {
       
       html += weekObj.shifts.map(shift => {
         const dayStr = new Date(shift.startTime).toLocaleDateString("en-US", { weekday: "long" });
+        
+        if (shift.id === editingShiftId) {
+          return `
+            <tr>
+              <td></td>
+              <td style="font-weight: 600;">${shift.username}</td>
+              <td>${shift.date}</td>
+              <td style="color: var(--dim); font-size: 13px;">${dayStr}</td>
+              <td><input type="datetime-local" id="edit-start-${shift.id}" value="${toDatetimeLocalString(shift.startTime)}" style="width:170px; padding:4px; border:1px solid var(--border); border-radius:4px; font-family:var(--font); font-size:12px;"></td>
+              <td><input type="datetime-local" id="edit-end-${shift.id}" value="${toDatetimeLocalString(shift.endTime)}" style="width:170px; padding:4px; border:1px solid var(--border); border-radius:4px; font-family:var(--font); font-size:12px;"></td>
+              <td style="font-family: var(--mono); font-weight: 600;">-</td>
+              <td style="font-weight: 600; color: var(--accent);">-</td>
+              <td style="display: flex; gap: 4px;">
+                <button class="btn-action btn-save" data-id="${shift.id}" title="Save" style="pointer-events: auto; color: var(--green); background: rgba(39, 174, 96, 0.1);">
+                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                </button>
+                <button class="btn-action btn-cancel" title="Cancel" style="pointer-events: auto; color: var(--red); background: rgba(235, 87, 87, 0.1);">
+                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </td>
+            </tr>
+          `;
+        }
+        
         return `
           <tr>
             <td><input type="checkbox" class="shift-checkbox" data-id="${shift.id}" style="pointer-events: auto;"></td>
@@ -371,9 +403,14 @@ if (isAdmin) {
             <td>${formatDatetimeLocal(shift.endTime)}</td>
             <td style="font-family: var(--mono); font-weight: 600;">${shift.durationFormatted}</td>
             <td style="font-weight: 600; color: var(--accent);">${(shift.pay || 0).toFixed(2)}</td>
-            <td><button class="btn-action btn-delete" data-id="${shift.id}" title="Delete Shift" style="pointer-events: auto;">
-                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-              </button></td>
+            <td style="display: flex; gap: 4px;">
+              <button class="btn-action btn-edit" data-id="${shift.id}" title="Edit Shift" style="pointer-events: auto;">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+              </button>
+              <button class="btn-action btn-delete" data-id="${shift.id}" title="Delete Shift" style="pointer-events: auto;">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </td>
           </tr>
         `;
       }).join("");
@@ -429,6 +466,64 @@ if (isAdmin) {
     });
 
     historyTbody.addEventListener("click", async (e) => {
+      const editBtn = e.target.closest(".btn-edit");
+      if (editBtn) {
+        editingShiftId = editBtn.getAttribute("data-id");
+        renderHistoryTable();
+        return;
+      }
+
+      const cancelBtn = e.target.closest(".btn-cancel");
+      if (cancelBtn) {
+        editingShiftId = null;
+        renderHistoryTable();
+        return;
+      }
+
+      const saveBtn = e.target.closest(".btn-save");
+      if (saveBtn) {
+        const id = saveBtn.getAttribute("data-id");
+        const startInput = document.getElementById(`edit-start-${id}`);
+        const endInput = document.getElementById(`edit-end-${id}`);
+        
+        if (!startInput || !endInput || !startInput.value || !endInput.value) {
+          alert("Please fill in both start and end times.");
+          return;
+        }
+        
+        const newStartTime = new Date(startInput.value).getTime();
+        const newEndTime = new Date(endInput.value).getTime();
+        
+        if (newEndTime <= newStartTime) {
+          alert("End time must be after start time.");
+          return;
+        }
+        
+        const durationMs = newEndTime - newStartTime;
+        const pay = calculatePay(durationMs);
+        
+        const updateData = {
+          startTime: newStartTime,
+          endTime: newEndTime,
+          durationFormatted: formatTime(durationMs),
+          pay: parseFloat(pay),
+          date: new Date(newStartTime).toISOString().split('T')[0],
+          weekIdentifier: getWeekIdentifier(new Date(newStartTime))
+        };
+        
+        saveBtn.disabled = true;
+        try {
+          await update(ref(db, `shifts/history/${id}`), updateData);
+          editingShiftId = null;
+          renderHistoryTable();
+        } catch (error) {
+          console.error(error);
+          alert("Failed to update shift.");
+        }
+        saveBtn.disabled = false;
+        return;
+      }
+
       const deleteBtn = e.target.closest(".btn-delete");
       if (deleteBtn) {
         const id = deleteBtn.getAttribute("data-id");
