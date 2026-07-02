@@ -162,10 +162,87 @@ onValue(ref(db, `shifts/active/${currentUser}`), (snapshot) => {
   }
 });
 
-punchBtn.addEventListener("click", async () => {
-  punchBtn.disabled = true; // prevent double clicks
+let html5QrCode = null;
+let currentFacingMode = "environment";
+let isPunchingOutGlobal = false;
+let expectedTextGlobal = "";
+
+const qrModal = document.getElementById("qr-modal");
+const qrModalTitle = document.getElementById("qr-modal-title");
+const qrCancelBtn = document.getElementById("qr-cancel-btn");
+const qrFlipBtn = document.getElementById("qr-flip-btn");
+
+function closeScanner() {
+  if (html5QrCode) {
+    html5QrCode.stop().then(() => {
+      html5QrCode.clear();
+      html5QrCode = null;
+    }).catch(err => {
+      console.error("Failed to stop scanner", err);
+      html5QrCode = null;
+    });
+  }
+  qrModal.style.display = "none";
+}
+
+if (qrCancelBtn) {
+  qrCancelBtn.addEventListener("click", closeScanner);
+}
+
+function startScannerInternal() {
+  html5QrCode.start(
+    { facingMode: currentFacingMode },
+    { fps: 10, qrbox: { width: 250, height: 250 } },
+    (decodedText) => {
+      if (decodedText.toLowerCase().trim() === expectedTextGlobal) {
+        closeScanner();
+        executePunch(isPunchingOutGlobal ? "out" : "in");
+      }
+    },
+    (errorMessage) => {
+      // ignore parse errors
+    }
+  ).catch(err => {
+    console.error("Failed to start scanner", err);
+    if (currentFacingMode === "environment") {
+      // fallback to user camera if environment fails
+      currentFacingMode = "user";
+      startScannerInternal();
+    } else {
+      alert("Could not start camera. Please ensure permissions are granted.");
+      closeScanner();
+    }
+  });
+}
+
+function startScanner() {
+  if (!html5QrCode) {
+    html5QrCode = new Html5Qrcode("qr-reader");
+  }
+  if (html5QrCode.isScanning) {
+    html5QrCode.stop().then(() => {
+      startScannerInternal();
+    }).catch(err => console.error("Error stopping to restart", err));
+  } else {
+    startScannerInternal();
+  }
+}
+
+if (qrFlipBtn) {
+  qrFlipBtn.addEventListener("click", () => {
+    currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+    if (html5QrCode && html5QrCode.isScanning) {
+      html5QrCode.stop().then(() => {
+        startScannerInternal();
+      }).catch(err => console.error("Error flipping camera", err));
+    }
+  });
+}
+
+async function executePunch(action) {
+  punchBtn.disabled = true;
   try {
-    if (activeShiftData) {
+    if (action === "out" && activeShiftData) {
       // Punch Out
       const endTime = Date.now();
       const startTime = activeShiftData.startTime;
@@ -182,15 +259,12 @@ punchBtn.addEventListener("click", async () => {
         weekIdentifier: getWeekIdentifier(new Date(startTime))
       };
       
-      // Save to history
       await push(ref(db, 'shifts/history'), newShift);
-      
-      // Remove from active
       await remove(ref(db, `shifts/active/${currentUser}`));
       
       activeShiftData = null;
       setPunchedOutState();
-    } else {
+    } else if (action === "in") {
       // Punch In
       const startTime = Date.now();
       await set(ref(db, `shifts/active/${currentUser}`), {
@@ -202,6 +276,17 @@ punchBtn.addEventListener("click", async () => {
     alert("Failed to update shift. Please try again.");
   }
   punchBtn.disabled = false;
+}
+
+punchBtn.addEventListener("click", () => {
+  isPunchingOutGlobal = !!activeShiftData;
+  expectedTextGlobal = isPunchingOutGlobal ? "punch out" : "punch in";
+  
+  qrModalTitle.textContent = isPunchingOutGlobal ? "Scan QR to Punch Out" : "Scan QR to Punch In";
+  qrModal.style.display = "flex";
+  
+  currentFacingMode = "environment";
+  startScanner();
 });
 
 // ── Admin Logic ──
